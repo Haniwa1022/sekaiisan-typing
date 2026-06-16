@@ -45,6 +45,17 @@
   .chip.lv{padding:8px 13px}
   .chip.lv[aria-pressed="true"]{background:var(--mixed);border-color:var(--mixed);color:var(--bg)}
 
+  .settings{margin-bottom:14px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);overflow:hidden}
+  .settings-toggle{width:100%;display:flex;align-items:center;gap:12px;padding:11px 16px;
+    background:transparent;border:0;cursor:pointer;color:#e7efe9;font-family:var(--ja-sans);text-align:left}
+  .settings-toggle:hover{background:var(--surface)}
+  .st-label{font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--muted-2);text-transform:uppercase;flex-shrink:0}
+  .st-summary{flex:1;min-width:0;font-size:14px;color:var(--verd);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .st-caret{color:var(--muted);font-size:12px;transition:transform .2s;flex-shrink:0}
+  .settings:not(.collapsed) .st-caret{transform:rotate(180deg)}
+  .settings .toolbar{margin:0;padding:6px 16px 16px;border-top:1px solid var(--line)}
+  .settings.collapsed .toolbar{display:none}
+
   .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
     border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:14px}
   .stat{background:var(--bg2);padding:11px 16px}
@@ -164,10 +175,17 @@
     <div class="grade">検定2級レベル</div>
   </header>
 
-  <div class="toolbar">
-    <div class="group" id="cats"></div>
-    <div class="group"><span class="glabel">級</span><span id="levels"></span></div>
-    <div class="group"><span class="glabel">出題数</span><span id="sizes"></span></div>
+  <div class="settings collapsed" id="settings">
+    <button class="settings-toggle" id="settingsToggle" aria-expanded="false">
+      <span class="st-label">出題設定</span>
+      <span class="st-summary" id="settingsSummary">すべて · 全級 · 10問</span>
+      <span class="st-caret" aria-hidden="true">▾</span>
+    </button>
+    <div class="toolbar" id="toolbar">
+      <div class="group" id="cats"></div>
+      <div class="group"><span class="glabel">級</span><span id="levels"></span></div>
+      <div class="group"><span class="glabel">出題数</span><span id="sizes"></span></div>
+    </div>
   </div>
 
   <div class="stats">
@@ -417,6 +435,17 @@ const DATA={
     ["ナンダ・デヴィ国立公園","なんだでびこくりつこうえん","自然遺産","インド","1988","","ヒマラヤの高峰と「花の谷」を含む公園。"],
     ["西ガーツ山脈","にしがーつさんみゃく","自然遺産","インド","2012","","固有種が豊富な生物多様性の宝庫。"],
     ["カンチェンゾンガ国立公園","かんちぇんぞんがこくりつこうえん","複合遺産","インド","2016","","世界第3位の高峰を擁する聖なる山域。"],
+    ["ルンビニ","るんびに","文化遺産","ネパール","1997","","釈迦が生誕したとされる仏教の聖地。"],
+    ["キャンディ","きゃんでぃ","文化遺産","スリランカ","1988","","仏歯寺で知られるシンハラ王朝最後の都。"],
+    ["ダンブッラ黄金寺院","だんぶっらおうごんじいん","文化遺産","スリランカ","1991","","岩窟に仏像と壁画が並ぶ石窟寺院。"],
+    ["トロイ遺跡","とろいいせき","文化遺産","トルコ","1998","","伝説のトロイ戦争の舞台とされる遺跡。"],
+    ["エフェソス","えふぇそす","文化遺産","トルコ","2015","","図書館跡などが残る古代ローマ都市。"],
+    ["イマーム広場","いまーむひろば","文化遺産","イラン","1979","","イスファハンの壮麗なモスクに囲まれた広場。"],
+    ["ブハラ","ぶはら","文化遺産","ウズベキスタン","1993","","シルクロードに栄えたイスラム都市。"],
+    ["ヒヴァ","ひば","文化遺産","ウズベキスタン","1990","","城壁に囲まれたオアシス都市イチャン・カラ。"],
+    ["バールベック","ばーるべっく","文化遺産","レバノン","1984","","巨大なローマ神殿が残る遺跡。"],
+    ["コモド国立公園","こもどこくりつこうえん","自然遺産","インドネシア","1991","","コモドオオトカゲが生息する島々。"],
+    ["ミーソン聖域","みーそんせいいき","文化遺産","ベトナム","1999","","チャンパ王国のヒンドゥー寺院群。"],
   ],
   "オセアニア":[
     ["グレートバリアリーフ","ぐれーとばりありーふ","自然遺産","オーストラリア","1981","","世界最大のサンゴ礁。"],
@@ -569,6 +598,18 @@ const DATA={
     ["ハンブルクの倉庫街","はんぶるくのそうこがい","文化遺産","ドイツ","2015","","赤レンガの倉庫が並ぶ港湾の歴史地区。"],
     ["メッセル採掘場","めっせるさいくつじょう","自然遺産","ドイツ","1995","","始新世の化石が大量に出土した発掘現場。"],
     ["ワッデン海","わっでんかい","自然遺産","ドイツ","2009","","世界最大級の干潟。オランダなどと共有。"],
+    ["ベレンの塔","べれんのとう","文化遺産","ポルトガル","1983","","大航海時代を象徴するリスボンの要塞。"],
+    ["シントラ","しんとら","文化遺産","ポルトガル","1995","","色鮮やかな宮殿群が点在する避暑地。"],
+    ["ポルト歴史地区","ぽるとれきしちく","文化遺産","ポルトガル","1996","","ドウロ川沿いに広がるワインの港町。"],
+    ["オリンピア","おりんぴあ","文化遺産","ギリシャ","1989","","古代オリンピックが行われた聖地。"],
+    ["ミケーネとティリンス","みけーねとてぃりんす","文化遺産","ギリシャ","1999","","ミケーネ文明を伝える城塞遺跡。"],
+    ["ヴィエリチカ岩塩坑","びえりちかがんえんこう","文化遺産","ポーランド","1978","","地下に礼拝堂まである巨大な岩塩坑。第1回登録の一つ。"],
+    ["キンデルダイク","きんでるだいく","文化遺産","オランダ","1997","","19基の風車が並ぶ干拓地の景観。"],
+    ["グラン・プラス","ぐらんぷらす","文化遺産","ベルギー","1998","","壮麗なギルドハウスが囲むブリュッセルの大広場。"],
+    ["チェスキー・クルムロフ","ちぇすきーくるむろふ","文化遺産","チェコ","1992","","城と川が織りなす中世の美しい町。"],
+    ["西ノルウェーフィヨルド","にしのるうぇーふぃよるど","自然遺産","ノルウェー","2005","","切り立った断崖が続くフィヨルドの絶景。"],
+    ["ベルン旧市街","べるんきゅうしがい","文化遺産","スイス","1983","","アーケードが続く中世の都の旧市街。"],
+    ["ユングフラウ","ゆんぐふらう","自然遺産","スイス","2001","","アルプスの高峰とアレッチ氷河。"],
   ],
   "アメリカ":[
     ["自由の女神像","じゆうのめがみぞう","文化遺産","アメリカ","1984","","移民を迎えた自由の象徴。"],
@@ -760,7 +801,12 @@ SIZES.forEach(([label,val])=>{
 
 function resetSession(){
   queue=buildQueue();idx=0;correctKeys=0;errorKeys=0;streak=0;startTime=0;running=false;finished=false;
-  updateStats();showOverlayStart();loadItem();
+  updateStats();updateSummary();showOverlayStart();loadItem();
+}
+function updateSummary(){
+  const lv=activeLevel==="all"?"全級":activeLevel+"級";
+  const sz=sessionSize===Infinity?"すべて":sessionSize+"問";
+  const el=$("settingsSummary");if(el)el.textContent=activeCat+" · "+lv+" · "+sz;
 }
 function showOverlayStart(){
   const o=$("overlay");o.style.display="flex";
@@ -772,7 +818,12 @@ function showOverlayStart(){
     '<p style="font-size:12px;opacity:.75">※ ローマ字直接入力（IMEはオフ）で打鍵してください</p>';
   $("startBtn").onclick=startRun;
 }
-function startRun(){running=true;finished=false;$("overlay").style.display="none";focusInput();}
+function startRun(){running=true;finished=false;$("overlay").style.display="none";collapseSettings();focusInput();}
+function collapseSettings(){
+  const s=$("settings");if(!s)return;
+  s.classList.add("collapsed");
+  $("settingsToggle").setAttribute("aria-expanded","false");
+}
 function focusInput(){const h=$("hiddenInput");h.value="";h.focus({preventScroll:true});}
 
 const TAGCLASS={"文化遺産":"tag-culture","自然遺産":"tag-nature","複合遺産":"tag-mixed","基礎用語":"tag-basic","負の遺産":"tag-neg"};
@@ -906,6 +957,13 @@ $("togglePhoto").onclick=()=>{
   $("togglePhoto").textContent=photosOn?"写真 表示":"写真 非表示";
   $("panel").classList.toggle("nophoto",!photosOn);
   if(photosOn&&idx<queue.length)loadPhoto(queue[idx],++photoReq);
+};
+
+$("settingsToggle").onclick=()=>{
+  const s=$("settings");
+  const collapsed=s.classList.toggle("collapsed");
+  $("settingsToggle").setAttribute("aria-expanded",String(!collapsed));
+  $("settingsToggle").blur();
 };
 
 resetSession();
