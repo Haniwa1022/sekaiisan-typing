@@ -783,10 +783,20 @@ function poolFor(cat){
   if(activeLevel!=="all")items=items.filter(it=>lvOf(it[0],it[7])>=activeLevel);
   return items;
 }
+const seenByPool={};
+function poolKey(){return activeCat+"|"+activeLevel;}
 function buildQueue(){
-  const pool=shuffle(poolFor(activeCat));
+  const pool=poolFor(activeCat);
   const n=sessionSize===Infinity?pool.length:Math.min(sessionSize,pool.length);
-  return pool.slice(0,n);
+  if(n>=pool.length)return shuffle(pool);              // プール全体が収まる場合は全件
+  const key=poolKey();
+  const seen=seenByPool[key]||(seenByPool[key]=new Set());
+  let unseen=pool.filter(it=>!seen.has(it[0]));         // 未出題を優先
+  if(unseen.length===0){seen.clear();unseen=pool.slice();} // 一巡したらリセット→以降ランダム
+  unseen=shuffle(unseen);
+  if(unseen.length>=n)return unseen.slice(0,n);
+  const rest=shuffle(pool.filter(it=>seen.has(it[0])));  // 足りない分は出題済みから補充
+  return shuffle(unseen.concat(rest.slice(0,n-unseen.length)));
 }
 
 /* build chips */
@@ -830,7 +840,12 @@ function showOverlayStart(){
     '<p style="font-size:12px;opacity:.75">※ ローマ字直接入力（IMEはオフ）で打鍵してください</p>';
   $("startBtn").onclick=startRun;
 }
-function startRun(){running=true;finished=false;$("overlay").style.display="none";collapseSettings();focusInput();}
+function startRun(){
+  running=true;finished=false;$("overlay").style.display="none";collapseSettings();
+  const seen=seenByPool[poolKey()]||(seenByPool[poolKey()]=new Set());
+  queue.forEach(it=>seen.add(it[0]));
+  focusInput();
+}
 function collapseSettings(){
   const s=$("settings");if(!s)return;
   s.classList.add("collapsed");
